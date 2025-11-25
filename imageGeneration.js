@@ -9,13 +9,12 @@ const BASE_URL = "https://api.on-demand.io/chat/v1";
 const MEDIA_BASE_URL = "https://api.on-demand.io/media/v1";
 
 let EXTERNAL_USER_ID = "<your_external_user_id>";
-const QUERY = "<your_query>";
 const RESPONSE_MODE = "sync";
-const AGENT_IDS = ["agent-1745475776", "agent-1763625419"]; // Dynamic array from PluginIds
+const AGENT_IDS = ["agent-1745475776", "agent-1763625419"];
 const ENDPOINT_ID = "predefined-openai-gpt4.1";
 const REASONING_MODE = "flash";
 const FULFILLMENT_PROMPT = "Return only the URL";
-const STOP_SEQUENCES = []; // Dynamic array
+const STOP_SEQUENCES = [];
 const TEMPERATURE = 0.7;
 const TOP_P = 1;
 const MAX_TOKENS = 0;
@@ -23,8 +22,8 @@ const PRESENCE_PENALTY = 0;
 const FREQUENCY_PENALTY = 0;
 
 // File upload configuration
-const FILE_PATH = "<path_to_your_file>"; // e.g., "/Users/username/Downloads/image.png"
-const FILE_NAME = "<file_name>"; // e.g., "image.png"
+const FILE_PATH = "<path_to_your_file>";
+const FILE_NAME = "<file_name>";
 const CREATED_BY = "AIREV";
 const UPDATED_BY = "AIREV";
 const FILE_AGENTS = [
@@ -35,13 +34,6 @@ const FILE_AGENTS = [
   "agent-1713967141",
 ];
 
-/**
- * Upload a media file to the API
- * @param {string} filePath - Path to the file to upload
- * @param {string} fileName - Name for the uploaded file
- * @param {string[]} plugins - List of plugin IDs to process the file
- * @returns {Promise<Object|null>} Upload response data or null if failed
- */
 async function uploadMediaFile(filePath, fileName, agents, sessionId) {
   const url = `${MEDIA_BASE_URL}/public/file/raw`;
 
@@ -57,18 +49,13 @@ async function uploadMediaFile(filePath, fileName, agents, sessionId) {
 
   try {
     const formData = new FormData();
-
-    // Add file
     formData.append("file", fs.createReadStream(filePath));
-
-    // Add form fields
     formData.append("sessionId", sessionId);
     formData.append("createdBy", CREATED_BY);
     formData.append("updatedBy", UPDATED_BY);
     formData.append("name", fileName);
     formData.append("responseMode", RESPONSE_MODE);
 
-    // Add plugins
     agents.forEach((agent) => {
       formData.append("agents", agent);
     });
@@ -85,15 +72,6 @@ async function uploadMediaFile(filePath, fileName, agents, sessionId) {
     if (response.status === 201 || response.status === 200) {
       const mediaResponse = await response.json();
       console.log(`✅ Media file uploaded successfully!`);
-      console.log(`📄 File ID: ${mediaResponse.data.id}`);
-      console.log(`🔗 URL: ${mediaResponse.data.url}`);
-
-      if (mediaResponse.data.context) {
-        console.log(
-          `📋 Context: ${mediaResponse.data.context.substring(0, 200)}...`
-        );
-      }
-
       return mediaResponse.data;
     } else {
       const respBody = await response.text();
@@ -108,50 +86,8 @@ async function uploadMediaFile(filePath, fileName, agents, sessionId) {
   }
 }
 
-async function main() {
-  if (API_KEY === "<your_api_key>" || !API_KEY) {
-    console.log("❌ Please set API_KEY.");
-    process.exit(1);
-  }
-  if (EXTERNAL_USER_ID === "<your_external_user_id>" || !EXTERNAL_USER_ID) {
-    EXTERNAL_USER_ID = uuidv4();
-    console.log(`⚠️  Generated EXTERNAL_USER_ID: ${EXTERNAL_USER_ID}`);
-  }
-
-  const contextMetadata = [
-    { key: "userId", value: "1" },
-    { key: "name", value: "John" },
-  ];
-
-  const sessionId = await createChatSession(contextMetadata);
-  if (sessionId) {
-    console.log("\n--- Submitting Query ---");
-    console.log(`Using query: '${QUERY}'`);
-    console.log(`Using responseMode: '${RESPONSE_MODE}'`);
-    // Optional: Upload media file if configured
-    let mediaData = null;
-    if (
-      FILE_PATH !== "<path_to_your_file>" &&
-      FILE_PATH &&
-      fs.existsSync(FILE_PATH)
-    ) {
-      mediaData = await uploadMediaFile(
-        FILE_PATH,
-        FILE_NAME,
-        FILE_AGENTS,
-        sessionId
-      );
-      if (mediaData) {
-        console.log(`\n✅ Media uploaded.`);
-      }
-    }
-    await submitQuery(sessionId, contextMetadata);
-  }
-}
-
 async function createChatSession(contextMetadata) {
   const url = `${BASE_URL}/sessions`;
-
   const body = {
     agentIds: AGENT_IDS,
     externalUserId: EXTERNAL_USER_ID,
@@ -175,7 +111,6 @@ async function createChatSession(contextMetadata) {
 
   if (response.status === 201) {
     const sessionRespData = await response.json();
-
     console.log(
       `✅ Chat session created. Session ID: ${sessionRespData.data.id}`
     );
@@ -197,11 +132,11 @@ async function createChatSession(contextMetadata) {
   }
 }
 
-async function submitQuery(sessionId, contextMetadata) {
+async function submitQuery(sessionId, contextMetadata, userQuery) {
   const url = `${BASE_URL}/sessions/${sessionId}/query`;
   const body = {
     endpointId: ENDPOINT_ID,
-    query: QUERY,
+    query: userQuery,
     agentIds: AGENT_IDS,
     responseMode: RESPONSE_MODE,
     reasoningMode: REASONING_MODE,
@@ -230,48 +165,35 @@ async function submitQuery(sessionId, contextMetadata) {
     body: jsonBody,
   });
 
-  console.log();
-
   if (RESPONSE_MODE === "sync") {
     if (response.status === 200) {
       const original = await response.json();
-
-      // Append context metadata at the end
       if (original.data) {
         original.data.contextMetadata = contextMetadata;
       }
-
-      const final = JSON.stringify(original, null, 2);
-      console.log("✅ Final Response (with contextMetadata appended):");
-      console.log(final);
-      return final;
+      return original;
     } else {
       const respBody = await response.text();
-      console.log(
-        `❌ Error submitting sync query: ${response.status} - ${respBody}`
+      throw new Error(
+        `Error submitting sync query: ${response.status} - ${respBody}`
       );
     }
   } else if (RESPONSE_MODE === "stream") {
     console.log("✅ Streaming Response...");
-
-    if (!response.body) {
-      console.log("❌ No response body for streaming.");
-      return;
-    }
+    if (!response.body) return null;
 
     let fullAnswer = "";
     let finalSessionId = "";
     let finalMessageId = "";
     let metrics = {};
 
+    // Note: ensure your node-fetch version/environment supports getReader, otherwise use .on('data')
     const reader = response.body.getReader();
     const decoder = new TextDecoder();
 
     async function read() {
       const { done, value } = await reader.read();
-      if (done) {
-        return;
-      }
+      if (done) return;
 
       const chunk = decoder.decode(value, { stream: true });
       const lines = chunk.split("\n");
@@ -279,34 +201,21 @@ async function submitQuery(sessionId, contextMetadata) {
       for (const line of lines) {
         if (line.startsWith("data:")) {
           const dataStr = line.slice(5).trim();
-
-          if (dataStr === "[DONE]") {
-            return;
-          }
-
+          if (dataStr === "[DONE]") return;
           try {
             const event = JSON.parse(dataStr);
             if (event.eventType === "fulfillment") {
-              if (event.answer) {
-                fullAnswer += event.answer;
-              }
-              if (event.sessionId) {
-                finalSessionId = event.sessionId;
-              }
-              if (event.messageId) {
-                finalMessageId = event.messageId;
-              }
+              if (event.answer) fullAnswer += event.answer;
+              if (event.sessionId) finalSessionId = event.sessionId;
+              if (event.messageId) finalMessageId = event.messageId;
             } else if (event.eventType === "metricsLog") {
-              if (event.publicMetrics) {
-                metrics = event.publicMetrics;
-              }
+              if (event.publicMetrics) metrics = event.publicMetrics;
             }
           } catch (e) {
             continue;
           }
         }
       }
-
       await read();
     }
 
@@ -324,10 +233,50 @@ async function submitQuery(sessionId, contextMetadata) {
       },
     };
 
-    const formatted = JSON.stringify(finalResponse, null, 2);
-    console.log("\n✅ Final Response (with contextMetadata appended):");
-    console.log(formatted);
+    return finalResponse;
   }
 }
 
-main().catch(console.error);
+// Wrapped Main Function to Export
+async function executeChat(userQuery) {
+  if (API_KEY === "<your_api_key>" || !API_KEY) {
+    throw new Error("❌ Please set API_KEY.");
+  }
+
+  if (EXTERNAL_USER_ID === "<your_external_user_id>" || !EXTERNAL_USER_ID) {
+    EXTERNAL_USER_ID = uuidv4();
+    console.log(`⚠️  Generated EXTERNAL_USER_ID: ${EXTERNAL_USER_ID}`);
+  }
+
+  const contextMetadata = [
+    { key: "userId", value: "1" },
+    { key: "name", value: "John" },
+  ];
+
+  const sessionId = await createChatSession(contextMetadata);
+
+  if (sessionId) {
+    // Optional: Upload media file if configured
+    let mediaData = null;
+    if (
+      FILE_PATH !== "<path_to_your_file>" &&
+      FILE_PATH &&
+      fs.existsSync(FILE_PATH)
+    ) {
+      mediaData = await uploadMediaFile(
+        FILE_PATH,
+        FILE_NAME,
+        FILE_AGENTS,
+        sessionId
+      );
+  }
+
+    // Call submitQuery with the userQuery and return the result
+    const result = await submitQuery(sessionId, contextMetadata, userQuery);
+    return result;
+  }
+  return null;
+}
+
+// Export the function
+module.exports = executeChat;
