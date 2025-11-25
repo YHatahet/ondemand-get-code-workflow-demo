@@ -2,8 +2,10 @@ const fetch = require("node-fetch");
 const { v4: uuidv4 } = require("uuid");
 const FormData = require("form-data");
 const fs = require("fs");
+const dotenv = require("dotenv");
+dotenv.config();
 
-const API_KEY = "<your_api_key>";
+const API_KEY = process.env.API_KEY;
 const BASE_URL = "https://api.on-demand.io/chat/v1";
 const MEDIA_BASE_URL = "https://api.on-demand.io/media/v1";
 

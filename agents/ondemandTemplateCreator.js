@@ -5,7 +5,7 @@ const CONFIG = {
   endpointId: "predefined-openai-gpt4.1",
   reasoningMode: "flash",
   fulfillmentPrompt:
-    "Write a summary of the findings. Include the pdf URL at the bottom of the email. Do not format as markdown. Keep plain text.",
+    "Include only the pdf URL (short.io). Do not format as markdown. Keep plain text.",
 };
 
 module.exports = async (userQuery) => {
