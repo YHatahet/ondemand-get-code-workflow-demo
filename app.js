@@ -26,7 +26,7 @@ async function run() {
   const ondemandTemplateCreatorOutput = await runOndemandTemplateCreatorAgent(
     "Take the image url " +
     imageGenerationOutput?.data?.answer +
-    " and create a report for the following content using the OnDemand Template Creator tool and shorten the URL using short.io tool. Return only the PDF URL:\n" +
+    " and create a report for the following content using the OnDemand Template Creator tool. Then, shorten the URL using short.io tool. Return only the PDF URL:\n" +
     perplexityOutput?.data?.answer
   );
   console.log(ondemandTemplateCreatorOutput)
