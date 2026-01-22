@@ -3,7 +3,7 @@ const executeChat = require("../chatClient");
 const CONFIG = {
   agentIds: ["agent-1748003575"],
   endpointId: "predefined-openai-gpt4.1",
-  reasoningMode: "flash",
+  reasoningMode: "gemini-3",
   fulfillmentPrompt: "",
 };
 
