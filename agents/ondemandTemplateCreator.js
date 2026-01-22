@@ -1,7 +1,7 @@
 const executeChat = require("../chatClient");
 
 const CONFIG = {
-  toolIds: ["agent-1762176202", "agent-1763625419"],
+  toolIds: ["plugin-1762176202", "plugin-1763625419"],
   endpointId: "predefined-openai-gpt4.1",
   reasoningMode: "gemini-3",
   fulfillmentPrompt:

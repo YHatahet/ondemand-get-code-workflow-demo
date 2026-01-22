@@ -1,7 +1,7 @@
 const executeChat = require("../chatClient");
 
 const CONFIG = {
-  toolIds: ["agent-1745475776", "agent-1763625419"],
+  toolIds: ["plugin-1745475776", "plugin-1763625419"],
   endpointId: "predefined-openai-gpt4.1",
   reasoningMode: "grok-4-fast",
   fulfillmentPrompt: "Return only the URL",
