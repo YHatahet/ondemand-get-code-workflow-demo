@@ -91,7 +91,7 @@ async function uploadMediaFile(filePath, fileName, agents, sessionId) {
 async function createChatSession(contextMetadata, config) {
   const url = `${BASE_URL}/sessions`;
   const body = {
-    agentIds: config.agentIds, // Use config
+    agentIds: config.toolIds, // Use config
     externalUserId: EXTERNAL_USER_ID,
     contextMetadata: contextMetadata,
   };
@@ -117,7 +117,7 @@ async function submitQuery(sessionId, contextMetadata, userQuery, config) {
   const body = {
     endpointId: config.endpointId,
     query: userQuery,
-    agentIds: config.agentIds,
+    agentIds: config.toolIds,
     responseMode: RESPONSE_MODE,
     reasoningMode: config.reasoningMode,
     modelConfigs: {
@@ -207,7 +207,7 @@ async function submitQuery(sessionId, contextMetadata, userQuery, config) {
 
 async function executeChat(userQuery, config) {
   // Validate config
-  if (!config || !config.agentIds || !config.endpointId) {
+  if (!config || !config.toolIds || !config.endpointId) {
     throw new Error("❌ Missing configuration (agentIds, endpointId, etc)");
   }
   if (API_KEY === "<your_api_key>" || !API_KEY)
