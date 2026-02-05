@@ -4,6 +4,9 @@ import uuid
 import httpx
 from dotenv import load_dotenv
 
+# Timeout for http connections - set as infinite for now
+timeout = httpx.Timeout(None, connect=10.0)
+
 # Load environment variables
 load_dotenv()
 
@@ -235,7 +238,7 @@ async def execute_chat(user_query, config):
     ]
 
     # Create one client for the lifecycle of this request
-    async with httpx.AsyncClient(timeout=60.0) as client:
+    async with httpx.AsyncClient(timeout=timeout) as client:
 
         # 1. Create Session
         session_id = await create_chat_session(client, context_metadata, config)
